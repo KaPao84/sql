@@ -1,0 +1,236 @@
+/*
+
+Marketing campaign data of 2,240 customers of the fictitious company Maven Marketing, including customer profiles, 
+product preferences, campaign successes/failures, and channel performance.
+
+data source: https://mavenanalytics.io/
+
+tasks:
+1. Data cleanup. Action null values and outliers
+2. Determine how age, education, marital status, and income is related to web purchases
+3. Determine most successful marketing campaigns
+4. Determine best performing product
+5. Determine underperforming channel
+
+*/
+
+-- Create Table
+create table if not exists marketing_data (
+	id int,
+	year_birth int,
+	education varchar,
+	marital_status varchar,
+	income int,
+	kidhome int,
+	teenhome int,
+	dt_customer date,
+	recency int,
+	mntwines int,
+	mntfruits int,
+	mntmeatproducts int,
+	mntfishproducts int,
+	mntsweetproducts int,
+	mntgoldprods int,
+	numdealpurchases int,
+	numwebpurchases int,
+	numcatalogpurchases int,
+	numstorepurchases int,
+	numwebvistsmonth int,
+	acceptedcmp3 int,
+	acceptedcmp4 int,
+	acceptedcmp5 int,
+	acceptedcmp1 int,
+	acceptedcmp2 int,
+	response int,
+	complain int,
+	country varchar
+)
+
+-- View Data
+select * from marketing_data
+limit 10
+
+-- Checking for invalid or incorrect values
+select distinct education from marketing_data
+select distinct marital_status from marketing_data
+
+-- removing marital_status values with YOLO and Absurd
+delete from marketing_data where marital_status = 'YOLO'
+
+delete from marketing_data where marital_status = 'Absurd'
+
+-- updating marital status alone to single
+update marketing_data
+set marital_status = 'Single'
+where marital_status = 'Alone'
+
+-- Check for missing data / null values
+
+select * from marketing_data
+where income is null
+
+select count(*) from marketing_data
+where income is null
+
+
+-- 24 rows of data have null income values. A very small number. Proceeding to remove these rows.
+
+delete from marketing_data where income is null
+
+-- Adding Age column
+
+alter table marketing_data
+add column age int
+
+-- Update Age column
+
+update marketing_data
+set age = extract(year from current_date) - year_birth
+
+-- factors related to purchases
+-- purchases by age
+select age, sum(numdealpurchases + numwebpurchases + numcatalogpurchases + numstorepurchases) as total_purchases
+from marketing_data
+group by 1
+order by 2 desc
+-- Breaking down the purchases further
+select 
+	age,
+	sum(numdealpurchases) as deal_purchases,
+	sum(numwebpurchases) as web_purchases,
+	sum(numcatalogpurchases) as catalog_purchases,
+	sum(numstorepurchases) as store_purchases
+from marketing_data
+group by 1
+order by 1
+
+-- purchases by education
+select education, sum(numdealpurchases + numwebpurchases + numcatalogpurchases + numstorepurchases) as total_purchases
+from marketing_data
+group by 1
+order by 2 desc
+-- Breaking down the purchases further
+select 
+	education,
+	sum(numdealpurchases) as deal_purchases,
+	sum(numwebpurchases) as web_purchases,
+	sum(numcatalogpurchases) as catalog_purchases,
+	sum(numstorepurchases) as store_purchases
+from marketing_data
+group by 1
+order by 1
+
+-- purchases by marital status
+select marital_status, sum(numdealpurchases + numwebpurchases + numcatalogpurchases + numstorepurchases) as total_purchases
+from marketing_data
+group by 1
+order by 2 desc
+-- Breaking down the purchases further
+select 
+	marital_status,
+	sum(numdealpurchases) as deal_purchases,
+	sum(numwebpurchases) as web_purchases,
+	sum(numcatalogpurchases) as catalog_purchases,
+	sum(numstorepurchases) as store_purchases
+from marketing_data
+group by 1
+order by 1
+
+-- purchases by income
+select income, sum(numdealpurchases + numwebpurchases + numcatalogpurchases + numstorepurchases) as total_purchases
+from marketing_data
+group by 1
+order by 2 desc
+-- Breaking down the purchases further
+select 
+	income,
+	sum(numdealpurchases) as deal_purchases,
+	sum(numwebpurchases) as web_purchases,
+	sum(numcatalogpurchases) as catalog_purchases,
+	sum(numstorepurchases) as store_purchases
+from marketing_data
+group by 1
+order by 1
+
+-- Most Successful Marketing Campaign
+-- campaign 1
+select count(*) from marketing_data
+where acceptedcmp1 > 0
+-- output 141
+-- Additional information on which country accepted campaign 1 the most
+select 
+	country,
+	age,
+	education,
+	marital_status,
+	income,
+	count(acceptedcmp1) over(partition by country) as cmp1
+from marketing_data
+where acceptedcmp1 > 0
+order by cmp1 desc
+
+-- campaign 2
+select count(*) from marketing_data
+where acceptedcmp2 > 0
+-- output 30
+-- Additional information on which country accepted campaign 2 the most
+select 
+	country,
+	age,
+	education,
+	marital_status,
+	income,
+	count(acceptedcmp2) over(partition by country) as cmp2
+from marketing_data
+where acceptedcmp2 > 0
+order by cmp2 desc
+
+-- campaign 3
+select count(*) from marketing_data
+where acceptedcmp3 > 0
+-- output 163
+-- Additional information on which country accepted campaign 3 the most
+select 
+	country,
+	age,
+	education,
+	marital_status,
+	income,
+	count(acceptedcmp3) over(partition by country) as cmp3
+from marketing_data
+where acceptedcmp3 > 0
+order by cmp3 desc
+
+-- campaign 4
+select count(*) from marketing_data
+where acceptedcmp4 > 0
+-- output 164
+-- Additional information on which country accepted campaign 4 the most
+select 
+	country,
+	age,
+	education,
+	marital_status,
+	income,
+	count(acceptedcmp4) over(partition by country) as cmp4
+from marketing_data
+where acceptedcmp4 > 0
+order by cmp4 desc
+
+-- campaign 5
+select count(*) from marketing_data
+where acceptedcmp5 > 0
+-- output 161
+-- Additional information on which country accepted campaign 5 the most
+select 
+	country,
+	age,
+	education,
+	marital_status,
+	income,
+	count(acceptedcmp5) over(partition by country) as cmp5
+from marketing_data
+where acceptedcmp5 > 0
+order by cmp5 desc
+
+-- Campaign 4 is the most successful campaign, while campaign 2 is the least successful.
